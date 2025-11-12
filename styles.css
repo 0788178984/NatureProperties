@@ -135,10 +135,20 @@ img {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+}
+
+.contact-info {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .contact-info span {
     margin-right: 20px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
 }
 
 .contact-info i {
@@ -146,15 +156,26 @@ img {
     color: var(--secondary-color);
 }
 
+.social-links {
+    display: flex;
+    align-items: center;
+}
+
 .social-links a {
     color: var(--white);
     margin-left: 15px;
     font-size: 1rem;
     transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
 }
 
 .social-links a:hover {
     color: var(--secondary-color);
+    transform: translateY(-2px);
 }
 
 /* Header */
