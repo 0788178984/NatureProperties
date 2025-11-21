@@ -69,11 +69,30 @@ img {
     max-width: 100%;
     height: auto;
     display: block;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: optimize-quality;
 }
 
 /* Image optimization */
 img[loading="lazy"] {
     content-visibility: auto;
+}
+
+/* Optimize background images */
+.slide {
+    image-rendering: -webkit-optimize-contrast;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+/* Prevent image layout shift */
+.property-image,
+.testimonial-author img {
+    aspect-ratio: 1;
+    object-fit: cover;
 }
 
 .btn {

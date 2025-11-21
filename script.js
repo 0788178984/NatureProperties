@@ -46,20 +46,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     window.addEventListener('resize', handleResize);
 
-    // Preload background images for hero slider
+    // Preload background images for hero slider (optimized)
     function preloadBackgroundImages() {
         const slides = document.querySelectorAll('.slide[data-bg-loaded="false"]');
         slides.forEach((slide, index) => {
-            const bgImage = slide.style.backgroundImage;
-            if (bgImage) {
-                const url = bgImage.match(/url\(['"]?([^'"]+)['"]?\)/);
-                if (url && url[1]) {
-                    const img = new Image();
-                    img.onload = function() {
-                        slide.setAttribute('data-bg-loaded', 'true');
-                    };
-                    img.src = url[1];
-                }
+            const bgImageUrl = slide.getAttribute('data-bg-image');
+            if (bgImageUrl) {
+                const img = new Image();
+                img.onload = function() {
+                    slide.style.backgroundImage = `url('${bgImageUrl}')`;
+                    slide.setAttribute('data-bg-loaded', 'true');
+                    // Remove will-change after image loads to save memory
+                    setTimeout(() => {
+                        slide.style.willChange = 'auto';
+                    }, 1000);
+                };
+                img.onerror = function() {
+                    console.warn('Failed to load background image:', bgImageUrl);
+                };
+                // Start loading
+                img.src = bgImageUrl;
             }
         });
     }
@@ -82,22 +88,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Show the current slide
-        slides[index].classList.add('active');
+        const currentSlide = slides[index];
+        currentSlide.classList.add('active');
+        
+        // Ensure current slide background is loaded
+        if (currentSlide.getAttribute('data-bg-loaded') === 'false') {
+            const bgImageUrl = currentSlide.getAttribute('data-bg-image');
+            if (bgImageUrl) {
+                const img = new Image();
+                img.onload = function() {
+                    currentSlide.style.backgroundImage = `url('${bgImageUrl}')`;
+                    currentSlide.setAttribute('data-bg-loaded', 'true');
+                };
+                img.src = bgImageUrl;
+            }
+        }
         
         // Preload next slide background if not loaded
         const nextIndex = (index + 1) % slides.length;
         const nextSlide = slides[nextIndex];
         if (nextSlide && nextSlide.getAttribute('data-bg-loaded') === 'false') {
-            const bgImage = nextSlide.style.backgroundImage;
-            if (bgImage) {
-                const url = bgImage.match(/url\(['"]?([^'"]+)['"]?\)/);
-                if (url && url[1]) {
-                    const img = new Image();
-                    img.onload = function() {
-                        nextSlide.setAttribute('data-bg-loaded', 'true');
-                    };
-                    img.src = url[1];
-                }
+            const bgImageUrl = nextSlide.getAttribute('data-bg-image');
+            if (bgImageUrl) {
+                const img = new Image();
+                img.onload = function() {
+                    nextSlide.style.backgroundImage = `url('${bgImageUrl}')`;
+                    nextSlide.setAttribute('data-bg-loaded', 'true');
+                };
+                img.src = bgImageUrl;
             }
         }
     }
