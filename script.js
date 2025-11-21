@@ -46,11 +46,34 @@ document.addEventListener('DOMContentLoaded', function() {
     
     window.addEventListener('resize', handleResize);
 
+    // Preload background images for hero slider
+    function preloadBackgroundImages() {
+        const slides = document.querySelectorAll('.slide[data-bg-loaded="false"]');
+        slides.forEach((slide, index) => {
+            const bgImage = slide.style.backgroundImage;
+            if (bgImage) {
+                const url = bgImage.match(/url\(['"]?([^'"]+)['"]?\)/);
+                if (url && url[1]) {
+                    const img = new Image();
+                    img.onload = function() {
+                        slide.setAttribute('data-bg-loaded', 'true');
+                    };
+                    img.src = url[1];
+                }
+            }
+        });
+    }
+
     // Hero Slider
     const slides = document.querySelectorAll('.slide');
     const prevBtn = document.querySelector('.slider-controls .prev');
     const nextBtn = document.querySelector('.slider-controls .next');
     let currentSlide = 0;
+
+    // Preload first slide immediately, others after page load
+    if (slides.length > 0) {
+        preloadBackgroundImages();
+    }
 
     function showSlide(index) {
         // Hide all slides
@@ -60,6 +83,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Show the current slide
         slides[index].classList.add('active');
+        
+        // Preload next slide background if not loaded
+        const nextIndex = (index + 1) % slides.length;
+        const nextSlide = slides[nextIndex];
+        if (nextSlide && nextSlide.getAttribute('data-bg-loaded') === 'false') {
+            const bgImage = nextSlide.style.backgroundImage;
+            if (bgImage) {
+                const url = bgImage.match(/url\(['"]?([^'"]+)['"]?\)/);
+                if (url && url[1]) {
+                    const img = new Image();
+                    img.onload = function() {
+                        nextSlide.setAttribute('data-bg-loaded', 'true');
+                    };
+                    img.src = url[1];
+                }
+            }
+        }
     }
 
     function nextSlide() {
@@ -263,17 +303,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Property card hover effect
+    // Property card hover effect (optimized - use CSS classes instead of inline styles)
     const propertyCards = document.querySelectorAll('.property-card');
     propertyCards.forEach(card => {
         card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-10px)';
-            this.style.boxShadow = '0 15px 30px rgba(0, 0, 0, 0.2)';
+            this.classList.add('hover-active');
         });
         
         card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
+            this.classList.remove('hover-active');
         });
     });
 

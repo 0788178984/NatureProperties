@@ -29,6 +29,13 @@ body {
     line-height: 1.6;
     color: var(--text-color);
     background-color: #f9f9f9;
+    contain: layout style paint;
+}
+
+/* Performance optimizations */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -61,6 +68,12 @@ ul {
 img {
     max-width: 100%;
     height: auto;
+    display: block;
+}
+
+/* Image optimization */
+img[loading="lazy"] {
+    content-visibility: auto;
 }
 
 .btn {
@@ -363,8 +376,10 @@ img {
     height: 100%;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     opacity: 0;
     transition: opacity 1s ease-in-out;
+    will-change: opacity;
 }
 
 .slide.active {
@@ -644,7 +659,13 @@ img {
     transition: var(--transition);
 }
 
-.property-card:hover {
+.property-card {
+    will-change: transform;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.property-card:hover,
+.property-card.hover-active {
     transform: translateY(-10px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
 }
@@ -878,10 +899,11 @@ img {
     border-radius: 20px;
     padding: 35px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.3);
+    will-change: transform;
 }
 
 .testimonial-card::before {
