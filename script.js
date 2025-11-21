@@ -1,4 +1,30 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Throttle function for performance optimization
+    function throttle(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Debounce function for performance optimization
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
     // Mobile Menu Toggle
     const mobileMenuBtn = document.querySelector('.mobile-menu');
     const navLinks = document.querySelector('.nav-links');
@@ -9,14 +35,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Handle window resize
-    window.addEventListener('resize', function() {
+    // Handle window resize with debouncing
+    const handleResize = debounce(function() {
         if (window.innerWidth > 992) {
-            navLinks.style.display = 'flex';
+            if (navLinks) navLinks.style.display = 'flex';
         } else {
-            navLinks.style.display = 'none';
+            if (navLinks) navLinks.style.display = 'none';
         }
-    });
+    }, 250);
+    
+    window.addEventListener('resize', handleResize);
 
     // Hero Slider
     const slides = document.querySelectorAll('.slide');
@@ -44,77 +72,73 @@ document.addEventListener('DOMContentLoaded', function() {
         showSlide(currentSlide);
     }
 
-    // Auto slide every 5 seconds
-    let slideInterval = setInterval(nextSlide, 5000);
+    // Auto slide every 5 seconds (only if slides exist)
+    let slideInterval = null;
+    if (slides.length > 0) {
+        slideInterval = setInterval(nextSlide, 5000);
 
-    // Pause auto slide on hover
-    const slider = document.querySelector('.slider');
-    if (slider) {
-        slider.addEventListener('mouseenter', () => {
-            clearInterval(slideInterval);
-        });
+        // Pause auto slide on hover
+        const slider = document.querySelector('.slider');
+        if (slider) {
+            slider.addEventListener('mouseenter', () => {
+                if (slideInterval) {
+                    clearInterval(slideInterval);
+                    slideInterval = null;
+                }
+            });
 
-        slider.addEventListener('mouseleave', () => {
-            slideInterval = setInterval(nextSlide, 5000);
-        });
+            slider.addEventListener('mouseleave', () => {
+                if (!slideInterval) {
+                    slideInterval = setInterval(nextSlide, 5000);
+                }
+            });
+        }
+
+        // Navigation controls
+        if (prevBtn && nextBtn) {
+            prevBtn.addEventListener('click', () => {
+                prevSlide();
+                if (slideInterval) {
+                    clearInterval(slideInterval);
+                }
+                slideInterval = setInterval(nextSlide, 5000);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                nextSlide();
+                if (slideInterval) {
+                    clearInterval(slideInterval);
+                }
+                slideInterval = setInterval(nextSlide, 5000);
+            });
+        }
     }
 
-    // Navigation controls
-    if (prevBtn && nextBtn) {
-        prevBtn.addEventListener('click', () => {
-            prevSlide();
-            clearInterval(slideInterval);
-            slideInterval = setInterval(nextSlide, 5000);
-        });
+    // Testimonial Cards Animation on Scroll
+    const testimonialCards = document.querySelectorAll('.testimonial-card');
+    if (testimonialCards.length > 0) {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
 
-        nextBtn.addEventListener('click', () => {
-            nextSlide();
-            clearInterval(slideInterval);
-            slideInterval = setInterval(nextSlide, 5000);
-        });
-    }
+        const testimonialObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }, index * 100);
+                    testimonialObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
 
-    // Testimonial Slider
-    const testimonials = document.querySelectorAll('.testimonial');
-    const testimonialPrevBtn = document.querySelector('.testimonial-prev');
-    const testimonialNextBtn = document.querySelector('.testimonial-next');
-    let currentTestimonial = 0;
-
-    function showTestimonial(index) {
-        // Hide all testimonials
-        testimonials.forEach(testimonial => {
-            testimonial.classList.remove('active');
-        });
-        
-        // Show the current testimonial
-        testimonials[index].classList.add('active');
-    }
-
-    function nextTestimonial() {
-        currentTestimonial = (currentTestimonial + 1) % testimonials.length;
-        showTestimonial(currentTestimonial);
-    }
-
-    function prevTestimonial() {
-        currentTestimonial = (currentTestimonial - 1 + testimonials.length) % testimonials.length;
-        showTestimonial(currentTestimonial);
-    }
-
-    // Auto slide testimonials every 8 seconds
-    let testimonialInterval = setInterval(nextTestimonial, 8000);
-
-    // Navigation controls for testimonials
-    if (testimonialPrevBtn && testimonialNextBtn) {
-        testimonialPrevBtn.addEventListener('click', () => {
-            prevTestimonial();
-            clearInterval(testimonialInterval);
-            testimonialInterval = setInterval(nextTestimonial, 8000);
-        });
-
-        testimonialNextBtn.addEventListener('click', () => {
-            nextTestimonial();
-            clearInterval(testimonialInterval);
-            testimonialInterval = setInterval(nextTestimonial, 8000);
+        testimonialCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            testimonialObserver.observe(card);
         });
     }
 
@@ -141,69 +165,91 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Sticky header on scroll
+    // Sticky header on scroll (optimized with throttling)
     const header = document.querySelector('.header');
     let lastScroll = 0;
+    let ticking = false;
     
-    window.addEventListener('scroll', function() {
+    function updateHeader() {
         const currentScroll = window.pageYOffset;
         
-        if (currentScroll > lastScroll && currentScroll > 200) {
-            // Scrolling down and past header
-            header.style.transform = 'translateY(-100%)';
-        } else {
-            // Scrolling up or at top
-            header.style.transform = 'translateY(0)';
-        }
-        
-        // Add shadow when scrolled
-        if (currentScroll > 50) {
-            header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
-            header.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
-        } else {
-            header.style.boxShadow = 'none';
-            header.style.backgroundColor = 'var(--white)';
+        if (header) {
+            if (currentScroll > lastScroll && currentScroll > 200) {
+                // Scrolling down and past header
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                // Scrolling up or at top
+                header.style.transform = 'translateY(0)';
+            }
+            
+            // Add shadow when scrolled
+            if (currentScroll > 50) {
+                header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+                header.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
+            } else {
+                header.style.boxShadow = 'none';
+                header.style.backgroundColor = 'var(--white)';
+            }
         }
         
         lastScroll = currentScroll;
-    });
-
-    // Countdown Timer for Sale Banner
-    function updateCountdown() {
-        const now = new Date();
-        // Set the target date to Black Friday (November 29, 2025)
-        const targetDate = new Date('November 29, 2025 00:00:00').getTime();
-        const nowTime = now.getTime();
-        
-        // If the sale has already started, show 00:00:00:00
-        if (nowTime >= targetDate) {
-            document.getElementById('days').textContent = '00';
-            document.getElementById('hours').textContent = '00';
-            document.getElementById('minutes').textContent = '00';
-            document.getElementById('seconds').textContent = '00';
-            return;
-        }
-        
-        // Calculate remaining time
-        const distance = targetDate - nowTime;
-        
-        // Time calculations for days, hours, minutes and seconds
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        
-        // Display the result
-        document.getElementById('days').textContent = days.toString().padStart(2, '0');
-        document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-        document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-        document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        ticking = false;
     }
     
-    // Update the countdown every second
-    if (document.getElementById('days')) {
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            window.requestAnimationFrame(updateHeader);
+            ticking = true;
+        }
+    }, { passive: true });
+
+    // Countdown Timer for Sale Banner (optimized)
+    const daysEl = document.getElementById('days');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+    
+    let countdownInterval = null;
+    
+    if (daysEl && hoursEl && minutesEl && secondsEl) {
+        function updateCountdown() {
+            const now = new Date();
+            // Set the target date to Black Friday (November 29, 2025)
+            const targetDate = new Date('November 29, 2025 00:00:00').getTime();
+            const nowTime = now.getTime();
+            
+            // If the sale has already started, show 00:00:00:00 and clear interval
+            if (nowTime >= targetDate) {
+                daysEl.textContent = '00';
+                hoursEl.textContent = '00';
+                minutesEl.textContent = '00';
+                secondsEl.textContent = '00';
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+                return;
+            }
+            
+            // Calculate remaining time
+            const distance = targetDate - nowTime;
+            
+            // Time calculations for days, hours, minutes and seconds
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            // Display the result
+            daysEl.textContent = days.toString().padStart(2, '0');
+            hoursEl.textContent = hours.toString().padStart(2, '0');
+            minutesEl.textContent = minutes.toString().padStart(2, '0');
+            secondsEl.textContent = seconds.toString().padStart(2, '0');
+        }
+        
+        // Update the countdown every second
         updateCountdown();
-        setInterval(updateCountdown, 1000);
+        countdownInterval = setInterval(updateCountdown, 1000);
     }
 
     // Form submission
@@ -231,44 +277,51 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Animate elements on scroll
+    // Animate elements on scroll (optimized - cache elements and use requestAnimationFrame)
+    // Note: Testimonials use IntersectionObserver, so we exclude them here
+    const animatedElements = document.querySelectorAll('.service-card, .property-card');
+    let animatedElementsArray = Array.from(animatedElements);
+    let animationTicking = false;
+    
+    // Set initial styles for animation
+    animatedElementsArray.forEach(element => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    });
+    
     function animateOnScroll() {
-        const elements = document.querySelectorAll('.service-card, .property-card, .testimonial');
+        const screenPosition = window.innerHeight / 1.3;
         
-        elements.forEach(element => {
-            const elementPosition = element.getBoundingClientRect().top;
-            const screenPosition = window.innerHeight / 1.3;
-            
-            if (elementPosition < screenPosition) {
+        animatedElementsArray.forEach(element => {
+            if (element.getBoundingClientRect().top < screenPosition) {
                 element.style.opacity = '1';
                 element.style.transform = 'translateY(0)';
             }
         });
+        
+        animationTicking = false;
     }
     
-    // Set initial styles for animation
-    document.addEventListener('DOMContentLoaded', function() {
-        const elements = document.querySelectorAll('.service-card, .property-card, .testimonial');
-        elements.forEach(element => {
-            element.style.opacity = '0';
-            element.style.transform = 'translateY(20px)';
-            element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        });
-        
-        // Run once on page load
-        setTimeout(animateOnScroll, 300);
-    });
+    // Run once on page load
+    setTimeout(animateOnScroll, 300);
     
-    // Run on scroll
-    window.addEventListener('scroll', animateOnScroll);
+    // Run on scroll with throttling
+    window.addEventListener('scroll', function() {
+        if (!animationTicking) {
+            window.requestAnimationFrame(animateOnScroll);
+            animationTicking = true;
+        }
+    }, { passive: true });
 
-    // Back to top button
+    // Back to top button (optimized with throttling)
     const backToTopBtn = document.createElement('button');
     backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
     backToTopBtn.className = 'back-to-top';
     document.body.appendChild(backToTopBtn);
     
-    window.addEventListener('scroll', function() {
+    let backToTopTicking = false;
+    function updateBackToTop() {
         if (window.pageYOffset > 300) {
             backToTopBtn.style.opacity = '1';
             backToTopBtn.style.visibility = 'visible';
@@ -276,7 +329,15 @@ document.addEventListener('DOMContentLoaded', function() {
             backToTopBtn.style.opacity = '0';
             backToTopBtn.style.visibility = 'hidden';
         }
-    });
+        backToTopTicking = false;
+    }
+    
+    window.addEventListener('scroll', function() {
+        if (!backToTopTicking) {
+            window.requestAnimationFrame(updateBackToTop);
+            backToTopTicking = true;
+        }
+    }, { passive: true });
     
     backToTopBtn.addEventListener('click', function() {
         window.scrollTo({
