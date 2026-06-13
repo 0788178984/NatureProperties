@@ -270,26 +270,26 @@ document.addEventListener('DOMContentLoaded', function() {
     let countdownInterval = null;
     
     if (daysEl && hoursEl && minutesEl && secondsEl) {
-        function updateCountdown() {
+        function getNextFriday() {
             const now = new Date();
-            // Set the target date to Black Friday (November 27, 2026)
-            const targetDate = new Date('November 27, 2026 00:00:00').getTime();
-            const nowTime = now.getTime();
+            const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+            const dayOfWeek = now.getDay();
             
-            // If the sale has already started, show 00:00:00:00 and clear interval
-            if (nowTime >= targetDate) {
-                daysEl.textContent = '00';
-                hoursEl.textContent = '00';
-                minutesEl.textContent = '00';
-                secondsEl.textContent = '00';
-                if (countdownInterval) {
-                    clearInterval(countdownInterval);
-                    countdownInterval = null;
-                }
-                return;
+            // Target the end of Friday (which is Saturday 00:00:00, day 6)
+            let daysUntilTarget = (6 - dayOfWeek + 7) % 7;
+            if (daysUntilTarget === 0) {
+                // If it is Saturday already, target next Saturday (end of next Friday)
+                daysUntilTarget = 7;
             }
             
-            // Calculate remaining time
+            target.setDate(now.getDate() + daysUntilTarget);
+            target.setHours(0, 0, 0, 0);
+            return target.getTime();
+        }
+
+        function updateCountdown() {
+            const nowTime = new Date().getTime();
+            const targetDate = getNextFriday();
             const distance = targetDate - nowTime;
             
             // Time calculations for days, hours, minutes and seconds
