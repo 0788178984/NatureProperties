@@ -1369,15 +1369,51 @@ img[loading="lazy"] {
         margin-bottom: 10px;
     }
     
+    .hero {
+        height: 60vh;
+    }
+    
     .slide-content {
-        left: 5%;
-        right: 5%;
-        max-width: 100%;
-        padding: 30px 20px;
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+        top: auto;
+        transform: none;
+        max-width: calc(100% - 30px);
+        padding: 20px 15px;
+        background-color: rgba(0, 0, 0, 0.75);
+        border-radius: 8px;
+        text-align: center;
     }
     
     .slide-content h2 {
-        font-size: 2rem;
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+        letter-spacing: 1px;
+    }
+    
+    .slide-content p {
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+    }
+    
+    .slide-content .btn {
+        padding: 10px 24px;
+        font-size: 0.85rem;
+    }
+    
+    .slider-controls {
+        bottom: auto;
+        top: 25%;
+        left: 50%;
+        transform: translateX(-50%);
+        gap: 20px;
+    }
+    
+    .slider-controls button {
+        width: 36px;
+        height: 36px;
+        background-color: rgba(0, 0, 0, 0.6);
     }
     
     .sale-banner {
@@ -1434,7 +1470,7 @@ img[loading="lazy"] {
     }
     
     .slide-content h2 {
-        font-size: 1.8rem;
+        font-size: 1.4rem;
     }
     
     .sale-banner {
