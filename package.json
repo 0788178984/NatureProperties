@@ -1,0 +1,11 @@
+{
+  "name": "nature-properties",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npx http-server -p 8080",
+    "dev": "npx http-server -p 8080"
+  },
+  "dependencies": {
+    "jimp": "^1.6.1"
+  }
+}
