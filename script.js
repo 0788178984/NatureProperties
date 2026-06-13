@@ -272,8 +272,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (daysEl && hoursEl && minutesEl && secondsEl) {
         function updateCountdown() {
             const now = new Date();
-            // Set the target date to Black Friday (November 29, 2025)
-            const targetDate = new Date('November 29, 2025 00:00:00').getTime();
+            // Set the target date to Black Friday (November 27, 2026)
+            const targetDate = new Date('November 27, 2026 00:00:00').getTime();
             const nowTime = now.getTime();
             
             // If the sale has already started, show 00:00:00:00 and clear interval
